@@ -26,6 +26,28 @@ Edit `apps/api/.env` and replace the placeholder values with your local PostgreS
 DATABASE_URL=postgresql+psycopg://growthspace_user:your-password@localhost:5432/growthspace
 ```
 
+Apply all database migrations:
+
+```powershell
+alembic upgrade head
+```
+
+Create a new migration after changing the SQLAlchemy models:
+
+```powershell
+alembic revision --autogenerate -m "describe the schema change"
+alembic upgrade head
+```
+
+Roll back the most recent migration with:
+
+```powershell
+alembic downgrade -1
+```
+
+The initial migration creates the `users` table. It stores only `password_hash`;
+plain-text passwords must never be stored in the database.
+
 Start the API:
 
 ```powershell
@@ -68,4 +90,3 @@ npm run build
 ```
 
 If PostgreSQL cannot be reached, the API returns HTTP 503 with a safe message that does not expose credentials or connection details.
-
