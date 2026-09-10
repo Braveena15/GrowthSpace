@@ -11,6 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.database import get_engine
 from app.routes.auth import router as auth_router
+from app.routes.planner import router as planner_router
 
 
 class HealthResponse(BaseModel):
@@ -24,11 +25,12 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 
 app.include_router(auth_router)
+app.include_router(planner_router)
 
 
 @app.exception_handler(RequestValidationError)

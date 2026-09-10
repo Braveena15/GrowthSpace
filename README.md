@@ -57,8 +57,10 @@ Roll back the most recent migration with:
 alembic downgrade -1
 ```
 
-The initial migration creates the `users` table. It stores only `password_hash`;
-plain-text passwords must never be stored in the database.
+The migrations create the `users` table followed by the `planner_tasks` table.
+The users table stores only `password_hash`; plain-text passwords must never be
+stored in the database. Planner tasks belong to a user and are removed by
+PostgreSQL if that user is deleted.
 
 ## Authentication setup
 
@@ -72,6 +74,50 @@ a number, and a symbol.
 `POST /api/auth/login` accepts the same JSON field names and returns a signed,
 expiring Bearer token. Supply it as `Authorization: Bearer <token>` when calling
 `GET /api/auth/me`. API responses never include the password or its Argon2 hash.
+
+## Weekly Planner API
+
+Apply migration `20260910_0002` with `alembic upgrade head` before using the
+planner API. Every planner endpoint requires the Bearer token returned by login:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Create a task with `POST /api/planner/tasks`:
+
+```json
+{
+  "title": "Plan the week",
+  "task_date": "2026-09-14",
+  "start_time": "09:00:00",
+  "end_time": "10:00:00"
+}
+```
+
+Titles are trimmed, cannot be blank, and can contain at most 200 characters.
+The end time must be later than the start time. Overlapping tasks are currently
+allowed. `user_id` is taken from the authenticated token and is never accepted
+in the request body.
+
+Available endpoints:
+
+- `POST /api/planner/tasks` creates a task.
+- `GET /api/planner/tasks?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD` lists the
+  authenticated user's tasks in date and start-time order. Both dates are
+  required, and the inclusive range cannot exceed 31 days.
+- `GET /api/planner/tasks/{task_id}` returns one owned task.
+- `PATCH /api/planner/tasks/{task_id}` updates supplied task fields, including
+  `is_completed`.
+- `DELETE /api/planner/tasks/{task_id}` deletes a task and returns HTTP 204.
+
+To roll back only the planner migration, use the following command. This drops
+the `planner_tasks` table and its data, so use it only when that data can safely
+be removed:
+
+```powershell
+alembic downgrade 20260910_0001
+```
 
 Start the API:
 
