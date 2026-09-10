@@ -1,0 +1,122 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
+const HEALTH_URL = "http://localhost:8000/api/health";
+
+type HealthResponse = {
+  api: "connected";
+  database: "connected";
+};
+
+type HealthState =
+  | { status: "loading" }
+  | { status: "connected"; data: HealthResponse }
+  | { status: "error"; message: string };
+
+const quickLinks = [
+  { label: "Daily Check-in", to: "/daily-check-in" },
+  { label: "Weekly Planner", to: "/weekly-planner" },
+  { label: "Journal", to: "/journal" },
+];
+
+export function HomePage() {
+  const [health, setHealth] = useState<HealthState>({ status: "loading" });
+  const today = new Date();
+  const dateTime = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
+  const formattedDate = new Intl.DateTimeFormat(undefined, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(today);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function checkHealth() {
+      try {
+        const response = await fetch(HEALTH_URL, { signal: controller.signal });
+
+        if (!response.ok) {
+          throw new Error("The backend is running, but a service is unavailable.");
+        }
+
+        const data = (await response.json()) as HealthResponse;
+        setHealth({ status: "connected", data });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setHealth({
+          status: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "The backend could not be reached. Make sure FastAPI is running on port 8000.",
+        });
+      }
+    }
+
+    void checkHealth();
+    return () => controller.abort();
+  }, []);
+
+  return (
+    <section className="page home-page" aria-labelledby="home-heading">
+      <div className="page-heading-row">
+        <div>
+          <p className="eyebrow">Overview</p>
+          <h1 id="home-heading">Home</h1>
+        </div>
+        <time className="today-date" dateTime={dateTime}>
+          {formattedDate}
+        </time>
+      </div>
+
+      <section className="content-panel" aria-labelledby="plan-heading">
+        <h2 id="plan-heading">Today&apos;s Plan</h2>
+        <div className="empty-state">
+          <p className="empty-state-title">Nothing planned yet.</p>
+          <p>Tasks and planning tools have not been added to GrowthSpace yet.</p>
+        </div>
+      </section>
+
+      <section className="quick-links-section" aria-labelledby="quick-links-heading">
+        <h2 id="quick-links-heading">Quick links</h2>
+        <div className="quick-links">
+          {quickLinks.map((link) => (
+            <Link key={link.to} to={link.to}>
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="content-panel health-panel" aria-live="polite" aria-labelledby="health-heading">
+        <h2 id="health-heading">System health</h2>
+
+        {health.status === "loading" && <p>Checking services...</p>}
+
+        {health.status === "connected" && (
+          <div className="status-list">
+            <p>API Connected</p>
+            <p>Database Connected</p>
+          </div>
+        )}
+
+        {health.status === "error" && (
+          <div className="error" role="alert">
+            <strong>Health check failed</strong>
+            <p>{health.message}</p>
+            <p>Confirm FastAPI is running and PostgreSQL is configured.</p>
+          </div>
+        )}
+      </section>
+    </section>
+  );
+}

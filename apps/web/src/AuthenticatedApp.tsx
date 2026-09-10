@@ -1,0 +1,69 @@
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+
+import { CurrentUser } from "./api/auth";
+import { ApplicationShell } from "./components/ApplicationShell";
+import { ComingSoonPage } from "./pages/ComingSoonPage";
+import { HomePage } from "./pages/HomePage";
+
+type AuthenticatedAppProps = {
+  user: CurrentUser;
+  onLogout: () => void;
+};
+
+export function AuthenticatedApp({ user, onLogout }: AuthenticatedAppProps) {
+  return (
+    <BrowserRouter>
+      <ApplicationShell username={user.username} onLogout={onLogout}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/daily-check-in"
+            element={
+              <ComingSoonPage
+                title="Daily Check-in"
+                description="Daily reflection questions and check-ins are coming next."
+              />
+            }
+          />
+          <Route
+            path="/weekly-planner"
+            element={
+              <ComingSoonPage
+                title="Weekly Planner"
+                description="Weekly planning tools will be added in a future step."
+              />
+            }
+          />
+          <Route
+            path="/journal"
+            element={
+              <ComingSoonPage
+                title="Journal"
+                description="Journal entries will be available here in a future step."
+              />
+            }
+          />
+          <Route
+            path="/weekly-reports"
+            element={
+              <ComingSoonPage
+                title="Weekly Reports"
+                description="Weekly summaries and reports will be added later."
+              />
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ComingSoonPage
+                title="Settings"
+                description="Application preferences will be managed here in a future step."
+              />
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </ApplicationShell>
+    </BrowserRouter>
+  );
+}

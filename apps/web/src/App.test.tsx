@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -19,10 +19,22 @@ function jsonResponse(body: object, init?: ResponseInit) {
   });
 }
 
-describe("App authentication", () => {
+async function signIn(fetchMock: ReturnType<typeof vi.fn<typeof fetch>>) {
+  fetchMock
+    .mockResolvedValueOnce(jsonResponse({ access_token: "jwt-token", token_type: "bearer" }))
+    .mockResolvedValueOnce(jsonResponse(currentUser))
+    .mockResolvedValueOnce(jsonResponse({ api: "connected", database: "connected" }));
+
+  await userEvent.type(screen.getByLabelText("Username"), "growth_owner");
+  await userEvent.type(screen.getByLabelText("Password"), "Strong-password1!");
+  await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+}
+
+describe("App authentication and navigation", () => {
   const fetchMock = vi.fn<typeof fetch>();
 
   beforeEach(() => {
+    window.history.replaceState({}, "", "/");
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);
   });
@@ -37,39 +49,90 @@ describe("App authentication", () => {
     expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
     expect(screen.getByLabelText("Username")).toBeInTheDocument();
     expect(screen.getByLabelText("Password")).toHaveAttribute("type", "password");
-    expect(screen.queryByText("Protected home")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Show password" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(screen.queryByRole("navigation", { name: "Primary navigation" })).not.toBeInTheDocument();
   });
 
-  it("posts credentials, verifies the token, and shows protected content", async () => {
-    fetchMock
-      .mockResolvedValueOnce(jsonResponse({ access_token: "jwt-token", token_type: "bearer" }))
-      .mockResolvedValueOnce(jsonResponse(currentUser))
-      .mockResolvedValueOnce(jsonResponse({ api: "connected", database: "connected" }));
-
+  it("toggles password visibility with the visibility button and keyboard", async () => {
+    const user = userEvent.setup();
     render(<App />);
 
-    await userEvent.type(screen.getByLabelText("Username"), "growth_owner");
-    await userEvent.type(screen.getByLabelText("Password"), "Strong-password1!");
-    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    const passwordInput = screen.getByLabelText("Password");
+    const showButton = screen.getByRole("button", { name: "Show password" });
 
-    expect(await screen.findByText("Protected home")).toBeInTheDocument();
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    await user.click(showButton);
+
+    expect(passwordInput).toHaveAttribute("type", "text");
+    expect(screen.getByRole("button", { name: "Hide password" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await user.keyboard("{Enter}");
+
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(screen.getByRole("button", { name: "Show password" })).toHaveFocus();
+  });
+
+  it("verifies login and shows the authenticated application shell", async () => {
+    render(<App />);
+    await signIn(fetchMock);
+
+    expect(await screen.findByRole("heading", { name: "Home" })).toBeInTheDocument();
+    expect(screen.getByText("GrowthSpace")).toBeInTheDocument();
+    expect(screen.getByText("Signed in as growth_owner")).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Primary navigation" })).toBeInTheDocument();
     expect(fetchMock).toHaveBeenNthCalledWith(1, "http://localhost:8000/api/auth/login", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         username: "growth_owner",
         password: "Strong-password1!",
       }),
     });
     expect(fetchMock).toHaveBeenNthCalledWith(2, "http://localhost:8000/api/auth/me", {
-      headers: {
-        Authorization: "Bearer jwt-token",
-      },
+      headers: { Authorization: "Bearer jwt-token" },
     });
-    expect(screen.getByText("Signed in as growth_owner")).toBeInTheDocument();
     expect(await screen.findByText("API Connected")).toBeInTheDocument();
+  });
+
+  it("shows an honest empty state on Home", async () => {
+    render(<App />);
+    await signIn(fetchMock);
+
+    expect(await screen.findByRole("heading", { name: "Today's Plan" })).toBeInTheDocument();
+    expect(screen.getByText("Nothing planned yet.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Tasks and planning tools have not been added to GrowthSpace yet."),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/\w+, \w+ \d{1,2}, \d{4}/)).toHaveAttribute("datetime");
+  });
+
+  it("navigates between pages and marks the active navigation item", async () => {
+    render(<App />);
+    await signIn(fetchMock);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary navigation" });
+    const homeLink = within(navigation).getByRole("link", { name: "Home" });
+    const journalLink = within(navigation).getByRole("link", { name: "Journal" });
+
+    expect(homeLink).toHaveAttribute("aria-current", "page");
+    expect(journalLink).not.toHaveAttribute("aria-current");
+
+    await userEvent.click(journalLink);
+
+    expect(screen.getByRole("heading", { name: "Journal" })).toBeInTheDocument();
+    expect(screen.getByText("Journal entries will be available here in a future step.")).toBeInTheDocument();
+    expect(journalLink).toHaveAttribute("aria-current", "page");
+    expect(homeLink).not.toHaveAttribute("aria-current");
+
+    await userEvent.click(within(navigation).getByRole("link", { name: "Weekly Reports" }));
+    expect(screen.getByRole("heading", { name: "Weekly Reports" })).toBeInTheDocument();
   });
 
   it("uses a generic error for invalid credentials", async () => {
@@ -81,11 +144,13 @@ describe("App authentication", () => {
 
     await userEvent.type(screen.getByLabelText("Username"), "growth_owner");
     await userEvent.type(screen.getByLabelText("Password"), "wrong-password");
+    await userEvent.click(screen.getByRole("button", { name: "Show password" }));
     await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Invalid username or password.");
     expect(screen.getByLabelText("Password")).toHaveValue("");
-    expect(screen.queryByText("Protected home")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Password")).toHaveAttribute("type", "password");
+    expect(screen.queryByRole("navigation", { name: "Primary navigation" })).not.toBeInTheDocument();
   });
 
   it("prevents repeated submissions while login is loading", async () => {
@@ -112,22 +177,15 @@ describe("App authentication", () => {
     expect(await screen.findByRole("button", { name: "Sign in" })).toBeEnabled();
   });
 
-  it("logs out by clearing protected state", async () => {
-    fetchMock
-      .mockResolvedValueOnce(jsonResponse({ access_token: "jwt-token", token_type: "bearer" }))
-      .mockResolvedValueOnce(jsonResponse(currentUser))
-      .mockResolvedValueOnce(jsonResponse({ api: "connected", database: "connected" }));
-
+  it("logs out and removes the authenticated shell", async () => {
     render(<App />);
-
-    await userEvent.type(screen.getByLabelText("Username"), "growth_owner");
-    await userEvent.type(screen.getByLabelText("Password"), "Strong-password1!");
-    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
-    await screen.findByText("Protected home");
+    await signIn(fetchMock);
+    await screen.findByRole("navigation", { name: "Primary navigation" });
 
     await userEvent.click(screen.getByRole("button", { name: "Log out" }));
 
     expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
-    expect(screen.queryByText("Protected home")).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Primary navigation" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Signed in as growth_owner")).not.toBeInTheDocument();
   });
 });

@@ -1,18 +1,7 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 
 import { CurrentUser, getCurrentUser, login } from "./api/auth";
-
-const HEALTH_URL = "http://localhost:8000/api/health";
-
-type HealthResponse = {
-  api: "connected";
-  database: "connected";
-};
-
-type HealthState =
-  | { status: "loading" }
-  | { status: "connected"; data: HealthResponse }
-  | { status: "error"; message: string };
+import { AuthenticatedApp } from "./AuthenticatedApp";
 
 type AuthState =
   | { status: "unauthenticated" }
@@ -22,45 +11,9 @@ function App() {
   const [auth, setAuth] = useState<AuthState>({ status: "unauthenticated" });
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [health, setHealth] = useState<HealthState>({ status: "loading" });
-
-  useEffect(() => {
-    if (auth.status !== "authenticated") {
-      return;
-    }
-
-    const controller = new AbortController();
-
-    async function checkHealth() {
-      try {
-        const response = await fetch(HEALTH_URL, { signal: controller.signal });
-
-        if (!response.ok) {
-          throw new Error("The backend is running, but a service is unavailable.");
-        }
-
-        const data = (await response.json()) as HealthResponse;
-        setHealth({ status: "connected", data });
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-
-        setHealth({
-          status: "error",
-          message:
-            error instanceof Error
-              ? error.message
-              : "The backend could not be reached. Make sure FastAPI is running on port 8000.",
-        });
-      }
-    }
-
-    void checkHealth();
-    return () => controller.abort();
-  }, [auth.status]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,12 +32,12 @@ function App() {
         accessToken: token.access_token,
         user,
       });
-      setHealth({ status: "loading" });
     } catch {
       setAuth({ status: "unauthenticated" });
       setLoginError("Invalid username or password.");
     } finally {
       setPassword("");
+      setIsPasswordVisible(false);
       setIsSubmitting(false);
     }
   }
@@ -93,98 +46,79 @@ function App() {
     setAuth({ status: "unauthenticated" });
     setUsername("");
     setPassword("");
+    setIsPasswordVisible(false);
     setLoginError("");
-    setHealth({ status: "loading" });
   }
 
-  if (auth.status !== "authenticated") {
-    return (
-      <main>
-        <section className="auth-card" aria-labelledby="login-heading">
-          <p className="eyebrow">Growth Space</p>
-          <h1 id="login-heading">Sign in</h1>
+  if (auth.status === "authenticated") {
+    return <AuthenticatedApp user={auth.user} onLogout={handleLogout} />;
+  }
 
-          <form className="login-form" onSubmit={handleLogin}>
-            <div className="field">
-              <label htmlFor="username">Username</label>
-              <input
-                id="username"
-                name="username"
-                autoComplete="username"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                required
-              />
-            </div>
+  return (
+    <main className="login-page">
+      <section className="auth-card" aria-labelledby="login-heading">
+        <p className="eyebrow">Growth Space</p>
+        <h1 id="login-heading">Sign in</h1>
 
-            <div className="field">
-              <label htmlFor="password">Password</label>
+        <form className="login-form" onSubmit={handleLogin}>
+          <div className="field">
+            <label htmlFor="username">Username</label>
+            <input
+              id="username"
+              name="username"
+              autoComplete="username"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              required
+            />
+          </div>
+
+          <div className="field">
+            <label htmlFor="password">Password</label>
+            <div className="password-input-wrapper">
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={isPasswordVisible ? "text" : "password"}
                 autoComplete="current-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required
               />
+              <button
+                className="password-visibility-button"
+                type="button"
+                aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                aria-pressed={isPasswordVisible}
+                onClick={() => setIsPasswordVisible((isVisible) => !isVisible)}
+              >
+                {isPasswordVisible ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="m3 3 18 18" />
+                    <path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-2.1 2.8" />
+                    <path d="M6.6 6.6C3.6 8.4 2 12 2 12s3.5 6 10 6a10.7 10.7 0 0 0 5.4-1.4" />
+                    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                )}
+              </button>
             </div>
-
-            {loginError && (
-              <p className="form-error" role="alert">
-                {loginError}
-              </p>
-            )}
-
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Signing in..." : "Sign in"}
-            </button>
-          </form>
-        </section>
-      </main>
-    );
-  }
-
-  return (
-    <main>
-      <section className="home-card">
-        <div className="home-header">
-          <div>
-            <p className="eyebrow">Growth Space</p>
-            <h1>Home</h1>
-            <p className="welcome">Signed in as {auth.user.username}</p>
           </div>
 
-          <button className="secondary-button" type="button" onClick={handleLogout}>
-            Log out
+          {loginError && (
+            <p className="form-error" role="alert">
+              {loginError}
+            </p>
+          )}
+
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Signing in..." : "Sign in"}
           </button>
-        </div>
-
-        <div className="placeholder">
-          <h2>Protected home</h2>
-          <p>This area is visible only after your token is verified by FastAPI.</p>
-        </div>
-
-        <section className="health-panel" aria-live="polite" aria-labelledby="health-heading">
-          <h2 id="health-heading">System health</h2>
-
-          {health.status === "loading" && <p>Checking services...</p>}
-
-          {health.status === "connected" && (
-            <div className="status-list">
-              <p>API Connected</p>
-              <p>Database Connected</p>
-            </div>
-          )}
-
-          {health.status === "error" && (
-            <div className="error" role="alert">
-              <strong>Health check failed</strong>
-              <p>{health.message}</p>
-              <p>Confirm FastAPI is running and PostgreSQL is configured.</p>
-            </div>
-          )}
-        </section>
+        </form>
       </section>
     </main>
   );
