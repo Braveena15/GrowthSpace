@@ -59,3 +59,17 @@ Acceptance criteria:
 - Logout clears the token and returns to the login screen.
 - The token remains only in React memory.
 - Existing backend and frontend functionality continues working.
+
+### Feature: Authenticated application shell
+
+- The application shell appears only after successful login.
+- It contains a header, navigation and main content area.
+- Navigation is usable by mouse and keyboard.
+- The active page is visibly identified.
+- Home displays today's date and a Today's Plan empty state.
+- Home provides quick links to Daily Check-in, Weekly Planner and Journal.
+- No fake tasks, scores, statistics or reports are displayed.
+- The authenticated username and logout action are visible.
+- Refreshing still returns to login because authentication is memory-only.
+- The layout adapts to desktop and mobile screen sizes.
+- Existing authentication and health functionality continues working.
