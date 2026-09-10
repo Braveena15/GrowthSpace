@@ -1,7 +1,7 @@
 #Growth Space
 
 ## Purpose 
-Growth Space is my private system for planning activities, recording daily progress, writing journal entries and reviewing weekly improvement. 
+Growth Space is private system for planning activities, recording daily progress, writing journal entries and reviewing weekly improvement. 
 
 ## First Feature: System Health Check
 
@@ -17,3 +17,30 @@ The first feature will verify that the React frontend, Fast API backend and Post
 - Database credentials are stored in .env.
 - .env is not committed to Github.
 - No login, planner or journal functionality is added yet. 
+
+### Feature: User database foundation
+
+The system must store the account required for accessing GrowthSpace.
+
+Acceptance criteria:
+
+- A users table exists in PostgreSQL.
+- Every user has an ID and unique username.
+- Passwords are never stored as plain text.
+- The table records when the account was created.
+- Alembic can create and reverse the database change.
+- Existing health-check functionality continues working.
+
+### Feature: Account setup and login API
+
+- The first user can create the personal GrowthSpace account.
+- A second account cannot be created through the setup endpoint.
+- Passwords are hashed with Argon2 before database storage.
+- Plain-text passwords are never returned or logged.
+- Correct credentials return a temporary JWT access token.
+- Incorrect username and password responses use the same generic message.
+- An inactive account cannot log in.
+- A protected /api/auth/me endpoint returns the authenticated user.
+- Missing, invalid or expired tokens return HTTP 401.
+- The JWT secret is loaded from .env and never committed.
+- Existing health checks and user-model tests continue passing.
