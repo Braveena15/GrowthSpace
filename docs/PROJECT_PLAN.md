@@ -44,3 +44,18 @@ Acceptance criteria:
 - Missing, invalid or expired tokens return HTTP 401.
 - The JWT secret is loaded from .env and never committed.
 - Existing health checks and user-model tests continue passing.
+
+### Feature: Frontend login
+
+- Unauthenticated users see only the login screen.
+- The user can enter a username and password.
+- React sends the credentials to POST /api/auth/login.
+- The password is never displayed, logged or stored.
+- Successful login returns an access token.
+- React validates the token using GET /api/auth/me.
+- A successful login opens a protected home placeholder.
+- Invalid credentials show a generic error.
+- The submit button shows a loading state.
+- Logout clears the token and returns to the login screen.
+- The token remains only in React memory.
+- Existing backend and frontend functionality continues working.
