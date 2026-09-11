@@ -51,7 +51,13 @@ function App() {
   }
 
   if (auth.status === "authenticated") {
-    return <AuthenticatedApp user={auth.user} onLogout={handleLogout} />;
+    return (
+      <AuthenticatedApp
+        accessToken={auth.accessToken}
+        user={auth.user}
+        onLogout={handleLogout}
+      />
+    );
   }
 
   return (

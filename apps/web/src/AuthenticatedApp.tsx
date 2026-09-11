@@ -4,13 +4,15 @@ import { CurrentUser } from "./api/auth";
 import { ApplicationShell } from "./components/ApplicationShell";
 import { ComingSoonPage } from "./pages/ComingSoonPage";
 import { HomePage } from "./pages/HomePage";
+import { WeeklyPlannerPage } from "./pages/WeeklyPlannerPage";
 
 type AuthenticatedAppProps = {
+  accessToken: string;
   user: CurrentUser;
   onLogout: () => void;
 };
 
-export function AuthenticatedApp({ user, onLogout }: AuthenticatedAppProps) {
+export function AuthenticatedApp({ accessToken, user, onLogout }: AuthenticatedAppProps) {
   return (
     <BrowserRouter>
       <ApplicationShell username={user.username} onLogout={onLogout}>
@@ -27,12 +29,7 @@ export function AuthenticatedApp({ user, onLogout }: AuthenticatedAppProps) {
           />
           <Route
             path="/weekly-planner"
-            element={
-              <ComingSoonPage
-                title="Weekly Planner"
-                description="Weekly planning tools will be added in a future step."
-              />
-            }
+            element={<WeeklyPlannerPage accessToken={accessToken} />}
           />
           <Route
             path="/journal"

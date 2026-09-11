@@ -17,7 +17,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -43,6 +44,7 @@ button:disabled {
 
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
 a:focus-visible {
   outline: 3px solid #a5b4fc;
   outline-offset: 2px;
@@ -372,6 +374,349 @@ h2 {
   max-width: 44rem;
 }
 
+.weekly-planner-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.planner-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.planner-page-header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.week-range {
+  margin: 0;
+  color: #475569;
+  font-weight: 700;
+}
+
+.week-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.planner-form-panel {
+  padding: 1.25rem;
+  border: 1px solid #c7d2fe;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 0.75rem 2rem rgb(49 46 129 / 8%);
+}
+
+.planner-form-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.planner-form-heading-row h2 {
+  margin: 0;
+}
+
+.text-button,
+.danger-text-button {
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  color: #4338ca;
+  background: transparent;
+}
+
+.text-button:hover:not(:disabled) {
+  background: #eef2ff;
+}
+
+.planner-task-form {
+  display: grid;
+  grid-template-columns: minmax(12rem, 2fr) repeat(3, minmax(9rem, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.field select {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.45rem;
+  padding: 0.55rem 0.75rem;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  font-weight: 700;
+}
+
+.checkbox-field input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.planner-form-error,
+.planner-form-actions,
+.delete-confirmation {
+  grid-column: 1 / -1;
+}
+
+.planner-form-actions,
+.delete-confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.danger-text-button {
+  margin-left: auto;
+  color: #b91c1c;
+}
+
+.danger-text-button:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.delete-confirmation {
+  padding: 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.6rem;
+  background: #fff7f7;
+}
+
+.delete-confirmation h3,
+.delete-confirmation p {
+  margin: 0 0 0.5rem;
+}
+
+.danger-button {
+  background: #b91c1c;
+}
+
+.danger-button:hover:not(:disabled) {
+  background: #991b1b;
+}
+
+.planner-status,
+.planner-empty-state,
+.planner-load-error {
+  margin: 0;
+}
+
+.planner-status {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  color: #3730a3;
+  background: #eef2ff;
+  font-weight: 700;
+}
+
+.planner-load-error button {
+  margin-top: 0.85rem;
+}
+
+.weekly-grid-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 0.5rem 1.5rem rgb(15 23 42 / 5%);
+}
+
+.weekly-grid-scroll:focus-visible {
+  outline: 3px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
+.weekly-grid {
+  display: grid;
+  grid-template-columns: 5.25rem repeat(7, minmax(8.75rem, 1fr));
+  min-width: 70rem;
+}
+
+.weekly-grid-corner,
+.weekly-day-heading {
+  min-height: 4.25rem;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #cbd5e1;
+  border-right: 1px solid #e2e8f0;
+  color: #334155;
+  background: #f8fafc;
+  font-weight: 800;
+  text-align: center;
+}
+
+.weekly-grid-corner {
+  position: sticky;
+  z-index: 4;
+  left: 0;
+  display: grid;
+  place-items: center;
+}
+
+.weekly-day-heading {
+  display: grid;
+  place-content: center;
+  gap: 0.2rem;
+}
+
+.weekly-day-heading span {
+  color: #4338ca;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.weekly-day-heading.today,
+.weekly-day-column.today {
+  background-color: #f5f3ff;
+}
+
+.weekly-time-column {
+  position: sticky;
+  z-index: 3;
+  left: 0;
+  border-right: 1px solid #cbd5e1;
+  background: #ffffff;
+}
+
+.weekly-time-column span {
+  position: absolute;
+  right: 0.6rem;
+  color: #64748b;
+  font-size: 0.75rem;
+  line-height: 1;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.weekly-time-column span.first {
+  transform: translateY(0.3rem);
+}
+
+.weekly-time-column span.last {
+  transform: translateY(-100%);
+}
+
+.weekly-day-column {
+  position: relative;
+  border-right: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.weekly-time-slot {
+  height: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.weekly-time-slot:nth-child(odd) {
+  border-bottom-style: dashed;
+  border-bottom-color: #f1f5f9;
+}
+
+.planner-task-box {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  overflow: hidden;
+  min-height: 1.5rem;
+  border: 1px solid #818cf8;
+  border-left: 4px solid #4f46e5;
+  border-radius: 0.35rem;
+  padding: 0.25rem 0.35rem;
+  color: #1e1b4b;
+  background: #e0e7ff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.planner-task-box:hover:not(:disabled) {
+  z-index: 2;
+  color: #1e1b4b;
+  background: #c7d2fe;
+}
+
+.planner-task-box.completed {
+  border-color: #64748b;
+  border-left-color: #475569;
+  color: #334155;
+  background: #e2e8f0;
+}
+
+.planner-task-box.completed .planner-task-title {
+  text-decoration: line-through;
+}
+
+.planner-task-time,
+.planner-task-title,
+.planner-task-status {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planner-task-time,
+.planner-task-status {
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}
+
+.planner-task-title {
+  margin-top: 0.15rem;
+  font-weight: 800;
+}
+
+.outside-hours {
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #ffffff;
+}
+
+.outside-hours > p {
+  margin: -0.35rem 0 1rem;
+  color: #64748b;
+}
+
+.outside-hours ul {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.outside-hours button {
+  display: grid;
+  width: 100%;
+  gap: 0.2rem;
+  min-height: 0;
+  border: 1px solid #cbd5e1;
+  padding: 0.75rem;
+  color: #334155;
+  background: #f8fafc;
+  text-align: left;
+}
+
+.outside-hours button:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.outside-hours button.completed strong {
+  text-decoration: line-through;
+}
+
 @media (max-width: 48rem) {
   .app-header {
     position: static;
@@ -408,6 +753,10 @@ h2 {
   .status-list {
     grid-template-columns: 1fr;
   }
+
+  .planner-task-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 34rem) {
@@ -438,5 +787,23 @@ h2 {
 
   .page-content {
     padding: 1.25rem 1rem;
+  }
+
+  .planner-page-header {
+    align-items: stretch;
+  }
+
+  .planner-task-form {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-form-error,
+  .planner-form-actions,
+  .delete-confirmation {
+    grid-column: auto;
+  }
+
+  .danger-text-button {
+    margin-left: 0;
   }
 }
