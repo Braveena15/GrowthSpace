@@ -81,7 +81,11 @@ export function HomePage({ accessToken }: HomePageProps) {
         </time>
       </div>
 
-      <TodaysPlan accessToken={accessToken} dateKey={dateTime} />
+      <TodaysPlan
+        accessToken={accessToken}
+        dateKey={dateTime}
+        formattedDate={formattedDate}
+      />
 
       <section className="quick-links-section" aria-labelledby="quick-links-heading">
         <h2 id="quick-links-heading">Quick links</h2>

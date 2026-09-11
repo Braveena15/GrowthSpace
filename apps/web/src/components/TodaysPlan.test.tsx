@@ -8,6 +8,14 @@ import { HomePage } from "../pages/HomePage";
 import { formatDateKey } from "../utils/planner";
 import { TodaysPlan } from "./TodaysPlan";
 
+const { toPngMock } = vi.hoisted(() => ({
+  toPngMock: vi.fn(),
+}));
+
+vi.mock("html-to-image", () => ({
+  toPng: toPngMock,
+}));
+
 function jsonResponse(body: object, init?: ResponseInit) {
   return new Response(JSON.stringify(body), {
     status: 200,
@@ -34,13 +42,19 @@ function renderPlan(fetchMock: ReturnType<typeof vi.fn<typeof fetch>>) {
   vi.stubGlobal("fetch", fetchMock);
   return render(
     <MemoryRouter>
-      <TodaysPlan accessToken="jwt-token" dateKey="2026-09-11" />
+      <TodaysPlan
+        accessToken="jwt-token"
+        dateKey="2026-09-11"
+        formattedDate="Friday, September 11, 2026"
+      />
     </MemoryRouter>,
   );
 }
 
 describe("Today's Plan", () => {
   afterEach(() => {
+    toPngMock.mockReset();
+    vi.restoreAllMocks();
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
@@ -82,6 +96,7 @@ describe("Today's Plan", () => {
     renderPlan(fetchMock);
 
     expect(screen.getByRole("status")).toHaveTextContent("Loading today's plan...");
+    expect(screen.getByRole("button", { name: "Export as image" })).toBeDisabled();
   });
 
   it("shows an honest empty state for a day without tasks", async () => {
@@ -109,7 +124,7 @@ describe("Today's Plan", () => {
       expect.stringContaining("Morning focus"),
       expect.stringContaining("Evening review"),
     ]);
-    expect(screen.getByText("5:00 AM–5:30 AM")).toBeInTheDocument();
+    expect(within(list).getByText("5:00 AM–5:30 AM")).toBeInTheDocument();
   });
 
   it("calculates completion progress from returned tasks", async () => {
@@ -120,7 +135,8 @@ describe("Today's Plan", () => {
     ];
     renderPlan(vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(tasks)));
 
-    expect(await screen.findByText("2 of 3 completed")).toBeInTheDocument();
+    const taskList = await screen.findByRole("list", { name: "Today's tasks" });
+    expect(taskList.previousElementSibling).toHaveTextContent("2 of 3 completed");
   });
 
   it("toggles completion, prevents repeated updates, and refetches the day", async () => {
@@ -158,7 +174,9 @@ describe("Today's Plan", () => {
     expect(
       await screen.findByRole("checkbox", { name: "Mark Morning focus incomplete" }),
     ).toBeChecked();
-    expect(screen.getByText("1 of 1 completed")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "Today's tasks" }).previousElementSibling).toHaveTextContent(
+      "1 of 1 completed",
+    );
     expect(fetchMock.mock.calls.filter(([, init]) => (init?.method ?? "GET") === "GET")).toHaveLength(
       2,
     );
@@ -181,5 +199,98 @@ describe("Today's Plan", () => {
 
     expect(await screen.findByText("Nothing planned for today.")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("enables export only after real tasks have loaded", async () => {
+    renderPlan(vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([makeTask()])));
+
+    expect(await screen.findByRole("button", { name: "Export as image" })).toBeEnabled();
+  });
+
+  it("disables export and shows progress while the image is being generated", async () => {
+    let resolveImage: (dataUrl: string) => void = () => {};
+    toPngMock.mockReturnValue(
+      new Promise<string>((resolve) => {
+        resolveImage = resolve;
+      }),
+    );
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    renderPlan(vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([makeTask()])));
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Export as image" }));
+
+    const creatingButton = screen.getByRole("button", { name: "Creating image…" });
+    expect(creatingButton).toBeDisabled();
+
+    resolveImage("data:image/png;base64,export");
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Export as image" })).toBeEnabled(),
+    );
+  });
+
+  it("passes the dedicated export card to toPng at double resolution", async () => {
+    toPngMock.mockResolvedValue("data:image/png;base64,export");
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    renderPlan(vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([makeTask()])));
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Export as image" }));
+
+    await waitFor(() => expect(toPngMock).toHaveBeenCalledTimes(1));
+    const [element, options] = toPngMock.mock.calls[0] as [HTMLElement, Record<string, unknown>];
+    expect(element).toHaveAttribute("data-testid", "todays-plan-export-card");
+    expect(element.closest("[aria-hidden='true']")).toHaveAttribute("inert");
+    expect(within(element).getByText("GrowthSpace")).toBeInTheDocument();
+    expect(within(element).getByText("Friday, September 11, 2026")).toBeInTheDocument();
+    expect(within(element).getByText("Morning focus")).toBeInTheDocument();
+    expect(options).toMatchObject({
+      backgroundColor: "#ffffff",
+      cacheBust: true,
+      pixelRatio: 2,
+    });
+  });
+
+  it("downloads the expected filename and removes the temporary link", async () => {
+    toPngMock.mockResolvedValue("data:image/png;base64,export");
+    let downloadLink: HTMLAnchorElement | null = null;
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      downloadLink = this;
+    });
+    renderPlan(vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([makeTask()])));
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Export as image" }));
+
+    await waitFor(() => expect(downloadLink).not.toBeNull());
+    expect(downloadLink).toHaveAttribute(
+      "download",
+      "growthspace-todays-plan-2026-09-11.png",
+    );
+    expect(downloadLink).not.toBeInTheDocument();
+  });
+
+  it("shows a safe error when image generation fails", async () => {
+    toPngMock.mockRejectedValue(new Error("Private rendering details"));
+    renderPlan(vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([makeTask()])));
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Export as image" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("The image could not be created. Please try again.");
+    expect(alert).not.toHaveTextContent("Private rendering details");
+    expect(screen.getByRole("button", { name: "Export as image" })).toBeEnabled();
+  });
+
+  it("does not export when the day has no tasks", async () => {
+    renderPlan(vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([])));
+
+    const exportButton = await screen.findByRole("button", { name: "Export as image" });
+    expect(exportButton).toBeDisabled();
+    expect(screen.queryByTestId("todays-plan-export-card")).not.toBeInTheDocument();
+    expect(toPngMock).not.toHaveBeenCalled();
   });
 });

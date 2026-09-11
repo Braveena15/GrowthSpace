@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toPng } from "html-to-image";
 import { Link } from "react-router-dom";
 
 import { PlannerTask, getPlannerTasks, updatePlannerTask } from "../api/planner";
 import { formatTime, timeToMinutes } from "../utils/planner";
+import { TodaysPlanExportCard } from "./TodaysPlanExportCard";
 
 type TodaysPlanProps = {
   accessToken: string;
   dateKey: string;
+  formattedDate: string;
 };
 
 type TaskState =
@@ -14,10 +17,13 @@ type TaskState =
   | { status: "ready"; tasks: PlannerTask[] }
   | { status: "error"; tasks: PlannerTask[] };
 
-export function TodaysPlan({ accessToken, dateKey }: TodaysPlanProps) {
+export function TodaysPlan({ accessToken, dateKey, formattedDate }: TodaysPlanProps) {
   const [taskState, setTaskState] = useState<TaskState>({ status: "loading", tasks: [] });
   const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(null);
   const [updateError, setUpdateError] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
+  const exportCardRef = useRef<HTMLDivElement>(null);
 
   const loadTasks = useCallback(
     async (signal?: AbortSignal) => {
@@ -75,13 +81,57 @@ export function TodaysPlan({ accessToken, dateKey }: TodaysPlanProps) {
     }
   }
 
+  async function handleExport() {
+    if (
+      taskState.status !== "ready" ||
+      orderedTasks.length === 0 ||
+      isExporting ||
+      !exportCardRef.current
+    ) {
+      return;
+    }
+
+    setIsExporting(true);
+    setExportError("");
+    let downloadLink: HTMLAnchorElement | null = null;
+
+    try {
+      const dataUrl = await toPng(exportCardRef.current, {
+        backgroundColor: "#ffffff",
+        cacheBust: true,
+        pixelRatio: 2,
+      });
+      downloadLink = document.createElement("a");
+      downloadLink.href = dataUrl;
+      downloadLink.download = `growthspace-todays-plan-${dateKey}.png`;
+      downloadLink.style.display = "none";
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+    } catch {
+      setExportError("The image could not be created. Please try again.");
+    } finally {
+      downloadLink?.remove();
+      setIsExporting(false);
+    }
+  }
+
   const showTasks = orderedTasks.length > 0;
 
   return (
     <section className="content-panel todays-plan" aria-labelledby="plan-heading">
       <div className="todays-plan-heading-row">
         <h2 id="plan-heading">Today&apos;s Plan</h2>
-        <Link to="/weekly-planner">Open Weekly Planner</Link>
+        <div className="todays-plan-actions">
+          <Link to="/weekly-planner">Open Weekly Planner</Link>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={taskState.status !== "ready" || !showTasks || isExporting}
+            onClick={() => void handleExport()}
+          >
+            {isExporting ? "Creating image…" : "Export as image"}
+          </button>
+        </div>
       </div>
 
       {taskState.status === "loading" && (
@@ -153,6 +203,21 @@ export function TodaysPlan({ accessToken, dateKey }: TodaysPlanProps) {
         <p className="form-error todays-plan-update-error" role="alert">
           {updateError}
         </p>
+      )}
+
+      {exportError && (
+        <p className="form-error todays-plan-export-error" role="alert">
+          {exportError}
+        </p>
+      )}
+
+      {showTasks && (
+        <TodaysPlanExportCard
+          ref={exportCardRef}
+          formattedDate={formattedDate}
+          tasks={orderedTasks}
+          completedCount={completedCount}
+        />
       )}
     </section>
   );
