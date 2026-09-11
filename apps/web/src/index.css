@@ -308,6 +308,113 @@ h2 {
   font-weight: 700;
 }
 
+.todays-plan-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.todays-plan-heading-row a {
+  color: #4338ca;
+  font-weight: 700;
+}
+
+.todays-plan-status,
+.todays-plan-progress {
+  margin: 0;
+  color: #475569;
+}
+
+.todays-plan-status {
+  padding: 1rem 0;
+}
+
+.todays-plan-progress {
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.today-task-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.today-task {
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #4f46e5;
+  border-radius: 0.6rem;
+  background: #ffffff;
+}
+
+.today-task label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: center;
+  min-height: 4rem;
+  padding: 0.75rem 0.9rem;
+  cursor: pointer;
+}
+
+.today-task input {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: #4f46e5;
+}
+
+.today-task input:focus-visible {
+  outline: 3px solid #a5b4fc;
+  outline-offset: 3px;
+}
+
+.today-task input:disabled,
+.today-task input:disabled + .today-task-details {
+  cursor: wait;
+}
+
+.today-task-details {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.today-task-details strong {
+  overflow-wrap: anywhere;
+  color: #1e293b;
+}
+
+.today-task-details span,
+.today-task-completion {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.today-task-completion {
+  font-weight: 700;
+}
+
+.today-task.completed {
+  border-left-color: #64748b;
+  background: #f8fafc;
+}
+
+.today-task.completed .today-task-details strong {
+  color: #475569;
+  text-decoration: line-through;
+}
+
+.todays-plan-error button {
+  margin-top: 0.85rem;
+}
+
+.todays-plan-update-error {
+  margin: 0.85rem 0 0;
+}
+
 .quick-links {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -754,6 +861,14 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .today-task label {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .today-task-completion {
+    grid-column: 2;
+  }
+
   .planner-task-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -787,6 +902,11 @@ h2 {
 
   .page-content {
     padding: 1.25rem 1rem;
+  }
+
+  .todays-plan-heading-row {
+    display: grid;
+    gap: 0.25rem;
   }
 
   .planner-page-header {

@@ -17,7 +17,7 @@ export function AuthenticatedApp({ accessToken, user, onLogout }: AuthenticatedA
     <BrowserRouter>
       <ApplicationShell username={user.username} onLogout={onLogout}>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<HomePage accessToken={accessToken} />} />
           <Route
             path="/daily-check-in"
             element={

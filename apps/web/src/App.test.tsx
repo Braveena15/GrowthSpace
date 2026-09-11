@@ -23,7 +23,15 @@ async function signIn(fetchMock: ReturnType<typeof vi.fn<typeof fetch>>) {
   fetchMock
     .mockResolvedValueOnce(jsonResponse({ access_token: "jwt-token", token_type: "bearer" }))
     .mockResolvedValueOnce(jsonResponse(currentUser))
-    .mockResolvedValueOnce(jsonResponse({ api: "connected", database: "connected" }));
+    .mockImplementation(async (input) => {
+      if (String(input).endsWith("/api/health")) {
+        return jsonResponse({ api: "connected", database: "connected" });
+      }
+      if (String(input).includes("/api/planner/tasks?")) {
+        return jsonResponse([]);
+      }
+      throw new Error(`Unexpected request: ${String(input)}`);
+    });
 
   await userEvent.type(screen.getByLabelText("Username"), "growth_owner");
   await userEvent.type(screen.getByLabelText("Password"), "Strong-password1!");
@@ -106,10 +114,8 @@ describe("App authentication and navigation", () => {
     await signIn(fetchMock);
 
     expect(await screen.findByRole("heading", { name: "Today's Plan" })).toBeInTheDocument();
-    expect(screen.getByText("Nothing planned yet.")).toBeInTheDocument();
-    expect(
-      screen.getByText("Tasks and planning tools have not been added to GrowthSpace yet."),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Nothing planned for today.")).toBeInTheDocument();
+    expect(screen.getByText("Use the Weekly Planner to add a task.")).toBeInTheDocument();
     expect(screen.getByText(/\w+, \w+ \d{1,2}, \d{4}/)).toHaveAttribute("datetime");
   });
 

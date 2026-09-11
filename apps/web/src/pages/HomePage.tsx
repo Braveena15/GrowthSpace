@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { TodaysPlan } from "../components/TodaysPlan";
+import { formatDateKey } from "../utils/planner";
+
 const HEALTH_URL = "http://localhost:8000/api/health";
 
 type HealthResponse = {
@@ -19,14 +22,14 @@ const quickLinks = [
   { label: "Journal", to: "/journal" },
 ];
 
-export function HomePage() {
+type HomePageProps = {
+  accessToken: string;
+};
+
+export function HomePage({ accessToken }: HomePageProps) {
   const [health, setHealth] = useState<HealthState>({ status: "loading" });
   const today = new Date();
-  const dateTime = [
-    today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, "0"),
-    String(today.getDate()).padStart(2, "0"),
-  ].join("-");
+  const dateTime = formatDateKey(today);
   const formattedDate = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
     year: "numeric",
@@ -78,13 +81,7 @@ export function HomePage() {
         </time>
       </div>
 
-      <section className="content-panel" aria-labelledby="plan-heading">
-        <h2 id="plan-heading">Today&apos;s Plan</h2>
-        <div className="empty-state">
-          <p className="empty-state-title">Nothing planned yet.</p>
-          <p>Tasks and planning tools have not been added to GrowthSpace yet.</p>
-        </div>
-      </section>
+      <TodaysPlan accessToken={accessToken} dateKey={dateTime} />
 
       <section className="quick-links-section" aria-labelledby="quick-links-heading">
         <h2 id="quick-links-heading">Quick links</h2>
