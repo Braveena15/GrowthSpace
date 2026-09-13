@@ -42,6 +42,32 @@ export type QuestionSet = {
   questions: CheckInQuestion[];
 };
 
+export type NoteAnalysisContent = {
+  summary: string;
+  positive_actions: string[];
+  challenges: string[];
+  possible_improvements: string[];
+  themes: string[];
+  reflection_question: string;
+};
+
+export type NoteAnalysis = NoteAnalysisContent & {
+  id: number;
+  local_date: string;
+  status: "draft" | "accepted" | "rejected";
+  model_name: string;
+  prompt_version: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type NoteAnalysisState = {
+  enabled: boolean;
+  has_notes: boolean;
+  is_outdated: boolean;
+  analysis: NoteAnalysis | null;
+};
+
 async function request<T>(path: string, token: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
@@ -92,3 +118,26 @@ export const saveCheckInResponsibilities = (token: string, localDate: string, it
 
 export const submitCheckIn = (token: string, localDate: string) =>
   request<CheckIn>(`/api/check-ins/${localDate}/submit`, token, { method: "POST" });
+
+export const getNoteAnalysis = (token: string, localDate: string, signal?: AbortSignal) =>
+  request<NoteAnalysisState>(`/api/check-ins/${localDate}/note-analysis`, token, { signal });
+
+export const generateNoteAnalysis = (token: string, localDate: string, confirmOverwriteAccepted = false) =>
+  request<NoteAnalysisState>(`/api/check-ins/${localDate}/note-analysis`, token, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ confirm_overwrite_accepted: confirmOverwriteAccepted }),
+  });
+
+export const updateNoteAnalysis = (token: string, localDate: string, content: NoteAnalysisContent) =>
+  request<NoteAnalysisState>(`/api/check-ins/${localDate}/note-analysis`, token, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(content),
+  });
+
+export const acceptNoteAnalysis = (token: string, localDate: string) =>
+  request<NoteAnalysisState>(`/api/check-ins/${localDate}/note-analysis/accept`, token, { method: "POST" });
+
+export const rejectNoteAnalysis = (token: string, localDate: string) =>
+  request<NoteAnalysisState>(`/api/check-ins/${localDate}/note-analysis/reject`, token, { method: "POST" });

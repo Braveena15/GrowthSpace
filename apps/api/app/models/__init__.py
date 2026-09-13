@@ -8,6 +8,7 @@ from app.models.daily_checkin import (
     CheckInResponsibility,
     DailyCheckIn,
 )
+from app.models.daily_note_analysis import DailyNoteAnalysis
 from app.models.planner_task import PlannerTask
 from app.models.user import User
 
@@ -18,6 +19,7 @@ __all__ = [
     "CheckInNap",
     "CheckInResponsibility",
     "DailyCheckIn",
+    "DailyNoteAnalysis",
     "PlannerTask",
     "User",
 ]

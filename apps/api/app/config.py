@@ -1,7 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field, PostgresDsn, SecretStr, field_validator
+from pydantic import AnyHttpUrl, Field, PostgresDsn, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     database_url: PostgresDsn
     jwt_secret: SecretStr = Field(min_length=32)
     access_token_expire_minutes: int = Field(default=30, gt=0, le=1440)
+    ollama_base_url: AnyHttpUrl = "http://localhost:11434"
+    ollama_model: str = Field(default="qwen3:8b", min_length=1, max_length=100)
+    ollama_timeout_seconds: float = Field(default=60, gt=0, le=300)
+    ai_note_analysis_enabled: bool = True
 
     @field_validator("jwt_secret")
     @classmethod

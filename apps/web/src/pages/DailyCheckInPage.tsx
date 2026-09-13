@@ -16,6 +16,7 @@ import {
 import { DurationPicker } from "../components/checkin/DurationPicker";
 import { RatingScale } from "../components/checkin/RatingScale";
 import { SegmentedChoice } from "../components/checkin/SegmentedChoice";
+import { NoteAnalysisPanel } from "../components/checkin/NoteAnalysisPanel";
 import { useAutosaveQueue } from "../hooks/useAutosaveQueue";
 import { formatDuration, formatLocalDateKey } from "../utils/checkins";
 
@@ -164,7 +165,7 @@ export function DailyCheckInPage({ accessToken }: { accessToken: string }) {
     return <div className="modern-state error" role="alert"><strong>We couldn’t load today’s check-in.</strong><span>Refresh the page when you’re ready to try again.</span></div>;
   }
   if (pageState === "submitted") {
-    return <section className="page checkin-page checkin-success"><div className="success-mark" aria-hidden="true">✓</div><p className="eyebrow">All done</p><h1>Check-in submitted</h1><p>Your answers are safely recorded. You can revisit today’s check-in if something changes.</p><Link to="/">Return home</Link></section>;
+    return <section className="page checkin-page"><div className="checkin-success"><div className="success-mark" aria-hidden="true">✓</div><p className="eyebrow">All done</p><h1>Check-in submitted</h1><p>Your answers are safely recorded. You can revisit today’s check-in if something changes.</p><Link to="/">Return home</Link></div><NoteAnalysisPanel accessToken={accessToken} localDate={localDate} /></section>;
   }
 
   const saveLabel = autosave.status === "saving" ? "Saving…" : autosave.status === "error" ? "Couldn’t save — Retry" : "Saved just now";
@@ -187,6 +188,7 @@ export function DailyCheckInPage({ accessToken }: { accessToken: string }) {
             </section>
           ))}
         </div>
+        <NoteAnalysisPanel accessToken={accessToken} localDate={localDate} />
         {validationMessage && <p className="form-error" role="alert">{validationMessage}</p>}
         <div className="checkin-actions"><button className="secondary-button" type="button" onClick={() => void moveTo(categories.length - 1)}>Back</button><button type="button" onClick={() => void handleSubmit()}>Submit check-in</button></div>
       </section>
