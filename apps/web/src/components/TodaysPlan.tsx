@@ -122,7 +122,7 @@ export function TodaysPlan({ accessToken, dateKey, formattedDate }: TodaysPlanPr
       <div className="todays-plan-heading-row">
         <h2 id="plan-heading">Today&apos;s Plan</h2>
         <div className="todays-plan-actions">
-          <Link to="/weekly-planner">Open Weekly Planner</Link>
+          <Link to="/weekly-planner" className="planner-link">Open Weekly Planner <span aria-hidden="true">→</span></Link>
           <button
             type="button"
             className="secondary-button"

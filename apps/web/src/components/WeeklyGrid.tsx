@@ -2,7 +2,6 @@ import { CSSProperties } from "react";
 
 import { PlannerTask } from "../api/planner";
 import {
-  SLOT_MINUTES,
   VISIBLE_END_MINUTES,
   VISIBLE_START_MINUTES,
   formatDateKey,
@@ -26,10 +25,12 @@ type PositionedTask = {
   laneCount: number;
 };
 
-const SLOT_HEIGHT = 32;
+// Full-hour rows keep the weekly overview quick to scan. Tasks retain exact times.
+const GRID_SLOT_MINUTES = 60;
+const SLOT_HEIGHT = 48;
 const slotStarts = Array.from(
-  { length: (VISIBLE_END_MINUTES - VISIBLE_START_MINUTES) / SLOT_MINUTES },
-  (_, index) => VISIBLE_START_MINUTES + index * SLOT_MINUTES,
+  { length: (VISIBLE_END_MINUTES - VISIBLE_START_MINUTES) / GRID_SLOT_MINUTES },
+  (_, index) => VISIBLE_START_MINUTES + index * GRID_SLOT_MINUTES,
 );
 const timeBoundaries = [...slotStarts, VISIBLE_END_MINUTES];
 
@@ -78,8 +79,8 @@ function taskPositionStyle(positionedTask: PositionedTask): CSSProperties {
   const endMinutes = timeToMinutes(positionedTask.task.end_time);
   const laneWidth = 100 / positionedTask.laneCount;
   return {
-    top: ((startMinutes - VISIBLE_START_MINUTES) / SLOT_MINUTES) * SLOT_HEIGHT + 1,
-    height: Math.max(((endMinutes - startMinutes) / SLOT_MINUTES) * SLOT_HEIGHT - 2, 24),
+    top: ((startMinutes - VISIBLE_START_MINUTES) / GRID_SLOT_MINUTES) * SLOT_HEIGHT + 1,
+    height: Math.max(((endMinutes - startMinutes) / GRID_SLOT_MINUTES) * SLOT_HEIGHT - 2, 24),
     left: `calc(${positionedTask.lane * laneWidth}% + 2px)`,
     width: `calc(${laneWidth}% - 4px)`,
   };

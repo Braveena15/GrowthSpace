@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
+import { BrandMark } from "./BrandMark";
 
 type ApplicationShellProps = {
   username: string;
@@ -8,19 +9,19 @@ type ApplicationShellProps = {
 };
 
 const navigationItems = [
-  { label: "Home", to: "/", end: true },
-  { label: "Daily Check-in", to: "/daily-check-in" },
-  { label: "Weekly Planner", to: "/weekly-planner" },
-  { label: "Journal", to: "/journal" },
-  { label: "Weekly Reports", to: "/weekly-reports" },
-  { label: "Settings", to: "/settings" },
+  { label: "Home", to: "/", end: true, icon: "⌂" },
+  { label: "Daily Check-in", to: "/daily-check-in", icon: "☀" },
+  { label: "Weekly Planner", to: "/weekly-planner", icon: "◫" },
+  { label: "Journal", to: "/journal", icon: "✦" },
+  { label: "Weekly Reports", to: "/weekly-reports", icon: "↗" },
+  { label: "Settings", to: "/settings", icon: "⚙" },
 ];
 
 export function ApplicationShell({ username, onLogout, children }: ApplicationShellProps) {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <p className="app-title">GrowthSpace</p>
+        <BrandMark />
         <div className="account-actions">
           <span className="signed-in-user">Signed in as {username}</span>
           <button className="secondary-button" type="button" onClick={onLogout}>
@@ -39,6 +40,7 @@ export function ApplicationShell({ username, onLogout, children }: ApplicationSh
                   end={item.end}
                   className={({ isActive }) => (isActive ? "active" : undefined)}
                 >
+                  <span className="nav-icon" aria-hidden="true">{item.icon}</span>
                   {item.label}
                 </NavLink>
               </li>

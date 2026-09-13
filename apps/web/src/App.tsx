@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 
 import { CurrentUser, getCurrentUser, login } from "./api/auth";
 import { AuthenticatedApp } from "./AuthenticatedApp";
+import { BrandMark } from "./components/BrandMark";
 
 type AuthState =
   | { status: "unauthenticated" }
@@ -65,10 +66,10 @@ function App() {
       <div className="login-shape login-shape-one" aria-hidden="true" />
       <div className="login-shape login-shape-two" aria-hidden="true" />
       <section className="auth-card" aria-labelledby="login-heading">
-        <div className="login-brand-mark" aria-hidden="true">G</div>
-        <p className="eyebrow">GrowthSpace</p>
+        <BrandMark />
+        <p className="eyebrow">Your personal growth companion</p>
         <h1 id="login-heading">Sign in</h1>
-        <p className="login-introduction">A private space to plan, reflect, and keep moving forward.</p>
+        <p className="login-introduction">Plan with intention, reflect with clarity, and make meaningful progress every day.</p>
 
         <form className="login-form" onSubmit={handleLogin}>
           <div className="field">
