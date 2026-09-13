@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, inspect
 API_ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_planner_migration_upgrades_and_downgrades_test_database() -> None:
+def test_migrations_upgrade_and_downgrade_test_database() -> None:
     engine = create_engine("sqlite://")
     config = Config(str(API_ROOT / "alembic.ini"))
 
@@ -19,6 +19,14 @@ def test_planner_migration_upgrades_and_downgrades_test_database() -> None:
         upgraded = inspect(connection)
         assert "users" in upgraded.get_table_names()
         assert "planner_tasks" in upgraded.get_table_names()
+        assert "daily_check_ins" in upgraded.get_table_names()
+        assert "check_in_answers" in upgraded.get_table_names()
+        assert "check_in_category_notes" in upgraded.get_table_names()
+        assert "check_in_naps" in upgraded.get_table_names()
+        assert "check_in_responsibilities" in upgraded.get_table_names()
+        assert "question_set_version" in {
+            column["name"] for column in upgraded.get_columns("daily_check_ins")
+        }
         indexes = {
             index["name"]: index["column_names"]
             for index in upgraded.get_indexes("planner_tasks")
@@ -33,5 +41,6 @@ def test_planner_migration_upgrades_and_downgrades_test_database() -> None:
         downgraded = inspect(connection)
         assert "users" in downgraded.get_table_names()
         assert "planner_tasks" not in downgraded.get_table_names()
+        assert "daily_check_ins" not in downgraded.get_table_names()
 
     engine.dispose()

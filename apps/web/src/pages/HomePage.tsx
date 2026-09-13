@@ -17,9 +17,9 @@ type HealthState =
   | { status: "error"; message: string };
 
 const quickLinks = [
-  { label: "Daily Check-in", to: "/daily-check-in" },
-  { label: "Weekly Planner", to: "/weekly-planner" },
-  { label: "Journal", to: "/journal" },
+  { label: "Daily Check-in", description: "Reflect on today", to: "/daily-check-in" },
+  { label: "Weekly Planner", description: "Shape your week", to: "/weekly-planner" },
+  { label: "Journal", description: "Capture your thoughts", to: "/journal" },
 ];
 
 type HomePageProps = {
@@ -92,7 +92,8 @@ export function HomePage({ accessToken }: HomePageProps) {
         <div className="quick-links">
           {quickLinks.map((link) => (
             <Link key={link.to} to={link.to}>
-              {link.label}
+              <span><strong>{link.label}</strong><small>{link.description}</small></span>
+              <span aria-hidden="true">→</span>
             </Link>
           ))}
         </div>

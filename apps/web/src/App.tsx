@@ -62,9 +62,13 @@ function App() {
 
   return (
     <main className="login-page">
+      <div className="login-shape login-shape-one" aria-hidden="true" />
+      <div className="login-shape login-shape-two" aria-hidden="true" />
       <section className="auth-card" aria-labelledby="login-heading">
-        <p className="eyebrow">Growth Space</p>
+        <div className="login-brand-mark" aria-hidden="true">G</div>
+        <p className="eyebrow">GrowthSpace</p>
         <h1 id="login-heading">Sign in</h1>
+        <p className="login-introduction">A private space to plan, reflect, and keep moving forward.</p>
 
         <form className="login-form" onSubmit={handleLogin}>
           <div className="field">

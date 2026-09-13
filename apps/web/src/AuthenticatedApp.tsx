@@ -5,6 +5,7 @@ import { ApplicationShell } from "./components/ApplicationShell";
 import { ComingSoonPage } from "./pages/ComingSoonPage";
 import { HomePage } from "./pages/HomePage";
 import { WeeklyPlannerPage } from "./pages/WeeklyPlannerPage";
+import { DailyCheckInPage } from "./pages/DailyCheckInPage";
 
 type AuthenticatedAppProps = {
   accessToken: string;
@@ -20,12 +21,7 @@ export function AuthenticatedApp({ accessToken, user, onLogout }: AuthenticatedA
           <Route path="/" element={<HomePage accessToken={accessToken} />} />
           <Route
             path="/daily-check-in"
-            element={
-              <ComingSoonPage
-                title="Daily Check-in"
-                description="Daily reflection questions and check-ins are coming next."
-              />
-            }
+            element={<DailyCheckInPage accessToken={accessToken} />}
           />
           <Route
             path="/weekly-planner"
