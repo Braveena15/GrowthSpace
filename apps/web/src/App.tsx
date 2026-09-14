@@ -1,20 +1,37 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import { CurrentUser, getCurrentUser, login } from "./api/auth";
 import { AuthenticatedApp } from "./AuthenticatedApp";
 import { BrandMark } from "./components/BrandMark";
 
 type AuthState =
+  | { status: "restoring" }
   | { status: "unauthenticated" }
   | { status: "authenticated"; accessToken: string; user: CurrentUser };
 
+const ACCESS_TOKEN_STORAGE_KEY = "growthspace.access_token";
+
 function App() {
-  const [auth, setAuth] = useState<AuthState>({ status: "unauthenticated" });
+  const [auth, setAuth] = useState<AuthState>(() =>
+    sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
+      ? { status: "restoring" }
+      : { status: "unauthenticated" },
+  );
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const accessToken = sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+    if (!accessToken) return;
+    let active = true;
+    void getCurrentUser(accessToken)
+      .then((user) => { if (active) setAuth({ status: "authenticated", accessToken, user }); })
+      .catch(() => { sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY); if (active) setAuth({ status: "unauthenticated" }); });
+    return () => { active = false; };
+  }, []);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,6 +45,7 @@ function App() {
     try {
       const token = await login({ username, password });
       const user = await getCurrentUser(token.access_token);
+      sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token.access_token);
       setAuth({
         status: "authenticated",
         accessToken: token.access_token,
@@ -44,11 +62,16 @@ function App() {
   }
 
   function handleLogout() {
+    sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
     setAuth({ status: "unauthenticated" });
     setUsername("");
     setPassword("");
     setIsPasswordVisible(false);
     setLoginError("");
+  }
+
+  if (auth.status === "restoring") {
+    return <main className="login-page"><p role="status">Restoring your session…</p></main>;
   }
 
   if (auth.status === "authenticated") {

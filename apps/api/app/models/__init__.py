@@ -9,6 +9,7 @@ from app.models.daily_checkin import (
     DailyCheckIn,
 )
 from app.models.daily_note_analysis import DailyNoteAnalysis
+from app.models.journal_entry import JournalEntry
 from app.models.planner_task import PlannerTask
 from app.models.user import User
 
@@ -20,6 +21,7 @@ __all__ = [
     "CheckInResponsibility",
     "DailyCheckIn",
     "DailyNoteAnalysis",
+    "JournalEntry",
     "PlannerTask",
     "User",
 ]

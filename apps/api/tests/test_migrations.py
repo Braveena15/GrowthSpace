@@ -25,6 +25,7 @@ def test_migrations_upgrade_and_downgrade_test_database() -> None:
         assert "check_in_naps" in upgraded.get_table_names()
         assert "check_in_responsibilities" in upgraded.get_table_names()
         assert "daily_note_analyses" in upgraded.get_table_names()
+        assert "journal_entries" in upgraded.get_table_names()
         assert "question_set_version" in {
             column["name"] for column in upgraded.get_columns("daily_check_ins")
         }

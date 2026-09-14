@@ -43,6 +43,7 @@ describe("App authentication and navigation", () => {
 
   beforeEach(() => {
     window.history.replaceState({}, "", "/");
+    sessionStorage.clear();
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);
   });
@@ -133,7 +134,7 @@ describe("App authentication and navigation", () => {
     await userEvent.click(journalLink);
 
     expect(screen.getByRole("heading", { name: "Journal" })).toBeInTheDocument();
-    expect(screen.getByText("Journal entries will be available here in a future step.")).toBeInTheDocument();
+    expect(screen.getByText("Write and revisit your thoughts privately in GrowthSpace.")).toBeInTheDocument();
     expect(journalLink).toHaveAttribute("aria-current", "page");
     expect(homeLink).not.toHaveAttribute("aria-current");
 
@@ -193,5 +194,17 @@ describe("App authentication and navigation", () => {
     expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Primary navigation" })).not.toBeInTheDocument();
     expect(screen.queryByText("Signed in as growth_owner")).not.toBeInTheDocument();
+    expect(sessionStorage.getItem("growthspace.access_token")).toBeNull();
+  });
+
+  it("restores a verified session after a browser refresh", async () => {
+    sessionStorage.setItem("growthspace.access_token", "saved-jwt");
+    fetchMock.mockResolvedValueOnce(jsonResponse(currentUser));
+    render(<App />);
+    expect(screen.getByRole("status")).toHaveTextContent("Restoring your session");
+    expect(await screen.findByRole("heading", { name: "Home" })).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith("http://localhost:8000/api/auth/me", {
+      headers: { Authorization: "Bearer saved-jwt" },
+    });
   });
 });

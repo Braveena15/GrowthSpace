@@ -15,6 +15,7 @@ from app.routes.planner import router as planner_router
 from app.routes.checkins import router as checkins_router
 from app.routes.note_analysis import router as note_analysis_router
 from app.routes.reports import router as reports_router
+from app.routes.journal import router as journal_router
 
 
 class HealthResponse(BaseModel):
@@ -37,6 +38,7 @@ app.include_router(planner_router)
 app.include_router(checkins_router)
 app.include_router(note_analysis_router)
 app.include_router(reports_router)
+app.include_router(journal_router)
 
 
 @app.exception_handler(RequestValidationError)
