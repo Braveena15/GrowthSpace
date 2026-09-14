@@ -6,6 +6,7 @@ import { ComingSoonPage } from "./pages/ComingSoonPage";
 import { HomePage } from "./pages/HomePage";
 import { WeeklyPlannerPage } from "./pages/WeeklyPlannerPage";
 import { DailyCheckInPage } from "./pages/DailyCheckInPage";
+import { WeeklyReportsPage } from "./pages/WeeklyReportsPage";
 
 type AuthenticatedAppProps = {
   accessToken: string;
@@ -38,12 +39,7 @@ export function AuthenticatedApp({ accessToken, user, onLogout }: AuthenticatedA
           />
           <Route
             path="/weekly-reports"
-            element={
-              <ComingSoonPage
-                title="Weekly Reports"
-                description="Weekly summaries and reports will be added later."
-              />
-            }
+            element={<WeeklyReportsPage accessToken={accessToken} />}
           />
           <Route
             path="/settings"

@@ -138,7 +138,7 @@ describe("App authentication and navigation", () => {
     expect(homeLink).not.toHaveAttribute("aria-current");
 
     await userEvent.click(within(navigation).getByRole("link", { name: "Weekly Reports" }));
-    expect(screen.getByRole("heading", { name: "Weekly Reports" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Weekly Report" })).toBeInTheDocument();
   });
 
   it("uses a generic error for invalid credentials", async () => {
