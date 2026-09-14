@@ -36,6 +36,16 @@ export function formatDateKey(date: Date): string {
   ].join("-");
 }
 
+/** Parse an API YYYY-MM-DD value as a local calendar day, never as UTC midnight. */
+export function parseDateKey(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+export function formatLocalDate(value: string, options: Intl.DateTimeFormatOptions): string {
+  return new Intl.DateTimeFormat(undefined, options).format(parseDateKey(value));
+}
+
 export function formatDayHeading(date: Date): string {
   return new Intl.DateTimeFormat(undefined, {
     weekday: "short",

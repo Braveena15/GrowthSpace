@@ -150,6 +150,9 @@ def save_answer(local_date: date, answer: AnswerWrite, user: Annotated[User, Dep
         session.execute(delete(CheckInNap).where(CheckInNap.check_in_id == check_in.id))
     if answer.question_key == "I1" and answer.choice_value in {"No", "N/A"}:
         session.execute(delete(CheckInResponsibility).where(CheckInResponsibility.check_in_id == check_in.id))
+    # This is a durable reporting anchor: only a validated saved response may set it.
+    if user.tracking_started_on is None:
+        user.tracking_started_on = local_date
     session.commit()
     session.refresh(check_in)
     return serialize(check_in, session)

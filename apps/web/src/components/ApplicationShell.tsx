@@ -9,6 +9,7 @@ type ApplicationShellProps = {
 };
 
 const navigationItems = [
+  { label: "Monthly Progress", to: "/monthly-progress", icon: "MP" },
   { label: "Home", to: "/", end: true, icon: "⌂" },
   { label: "Daily Check-in", to: "/daily-check-in", icon: "☀" },
   { label: "Weekly Planner", to: "/weekly-planner", icon: "◫" },

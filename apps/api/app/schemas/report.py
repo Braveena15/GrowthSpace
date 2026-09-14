@@ -149,3 +149,79 @@ class WeeklyReportResponse(ReportModel):
     planner_summary: PlannerSummary
     reviewed_reflections: list[ReviewedReflection]
     outdated_accepted_analysis_count: int
+
+
+class ComparisonValue(ReportModel):
+    value: float | int | None
+    recorded_count: int
+    comparison_value: float | int | None
+    comparison_recorded_count: int
+    difference: float | int | None
+    direction: Literal["increased", "decreased", "unchanged", "unavailable"]
+
+
+class MonthlyRatingMetric(RatingMetric):
+    comparison: ComparisonValue
+
+
+class MonthlyDurationMetric(DurationMetric):
+    comparison: ComparisonValue
+
+
+class MonthlyBooleanMetric(BooleanMetric):
+    yes_percentage: float | None
+    comparison: ComparisonValue
+
+
+class MonthlyCategoryCompletion(ReportModel):
+    category: str
+    applicable_required_question_count: int
+    answered_required_question_count: int
+    completion_percentage: float | None
+    completed_check_in_days: int
+    comparison: ComparisonValue
+
+
+class MonthlyPlannerSummary(PlannerSummary):
+    tasks_per_eligible_day: float | None
+    comparison: ComparisonValue
+
+
+class MonthlyResponsibilitySummary(ResponsibilitySummary):
+    days_with_entries: int
+    average_per_recorded_check_in_day: float | None
+    comparison: ComparisonValue
+
+
+class MonthlyCareMetric(ScheduledCareMetric):
+    percentage: float | None
+    comparison: ComparisonValue
+
+
+class MonthlyProgressResponse(ReportModel):
+    tracking_started_on: date | None
+    period_start: date
+    period_end: date
+    period_status: Literal["previous", "current", "future"]
+    previous_period_start: date | None
+    next_period_start: date
+    has_previous_period: bool
+    comparison_period_start: date | None
+    comparison_period_end: date | None
+    comparison_label: str
+    daily_status: list[DailyStatus]
+    recorded_check_in_days: int
+    eligible_elapsed_days: int
+    total_month_days: int
+    missing_elapsed_dates: list[date]
+    upcoming_dates: list[date]
+    category_completion_summaries: list[MonthlyCategoryCompletion]
+    rating_metrics: list[MonthlyRatingMetric]
+    duration_metrics: list[MonthlyDurationMetric]
+    boolean_metrics: list[MonthlyBooleanMetric]
+    responsibility_counts: MonthlyResponsibilitySummary
+    daily_moisturizer_consistency: MonthlyCareMetric
+    scheduled_care_consistency: list[MonthlyCareMetric]
+    planner_summary: MonthlyPlannerSummary
+    reviewed_reflections: list[ReviewedReflection]
+    outdated_accepted_analysis_count: int

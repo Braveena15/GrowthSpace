@@ -8,6 +8,7 @@ import { WeeklyPlannerPage } from "./pages/WeeklyPlannerPage";
 import { DailyCheckInPage } from "./pages/DailyCheckInPage";
 import { WeeklyReportsPage } from "./pages/WeeklyReportsPage";
 import { JournalPage } from "./pages/JournalPage";
+import { MonthlyProgressPage } from "./pages/MonthlyProgressPage";
 
 type AuthenticatedAppProps = {
   accessToken: string;
@@ -37,6 +38,7 @@ export function AuthenticatedApp({ accessToken, user, onLogout }: AuthenticatedA
             path="/weekly-reports"
             element={<WeeklyReportsPage accessToken={accessToken} />}
           />
+          <Route path="/monthly-progress" element={<MonthlyProgressPage accessToken={accessToken} />} />
           <Route
             path="/settings"
             element={
